@@ -11,16 +11,6 @@ Mostly for fun. I wanted to create a library that I could use in my PHP CLI and 
 
 Also it was important for me that is easy to render the results, to strings or arrays for use in other contexts like files or databases.
 
-
-## Goals/TODO!
-- find a proper name!
-- some mini games in the examples to show how it works. 
-- some more examples of how to use it.
-- more animation support.
-- more charts.
-- better window handling and multi window support.
-- support for every OS.
-
 ## How?	
 
 ## Features
@@ -31,13 +21,31 @@ Also it was important for me that is easy to render the results, to strings or a
 
 ## Installation
 
-### Composer
-
+#### Composer
 
 ## Examples
 See the examples folder.
-- examples/PIN_IDENTIFICATION_PROGRAM.php implements a Demo Application of the T2 Movie Prop PIN_IDENTIFICATION_PROGRAM in raw PHP.
-- examples/exception.php implements a static renderer for exceptions which can be used in other projects and logfiles.
+
+#### examples/PIN_IDENTIFICATION_PROGRAM.php implements a Demo Application of the T2 Movie Prop PIN_IDENTIFICATION_PROGRAM in raw PHP.
+
+<img src="https://github.com/tuefekci/blkhole/raw/demo/PIN_IDENTIFICATION_PROGRAM.gif" />
+
+#### examples/exception.php implements a static renderer for exceptions which can be used in other projects and logfiles.
+
+---
+
+## Goals/TODO!
+- find a proper name!
+- some mini games in the examples to show how it works. 
+- some more examples of how to use it.
+- more animation support.
+- more charts.
+- better window handling and multi window support.
+- support for every OS.
+
+
+
+
 
 ## License
 MIT

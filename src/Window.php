@@ -18,7 +18,13 @@ class Window
 	private int $drawCount = 0;
 	private int $tick = 0;
 
+	
+	private int $fps = 0;
+	private int $fpsCount = 0;
+
 	private string $title = "";
+
+	private bool $clearScreen = true;
 
 	public function __construct($title=null)
 	{
@@ -26,9 +32,9 @@ class Window
 		$this->time = microtime(true);
 
 		$this->getTTYSize();
-		$stream = $this->stdout = fopen('php://stdout', 'w');
+		$this->stdout = fopen('php://stdout', 'w');
 
-		$this->hideCursor($stream);
+		$this->hideCursor();
 
 		if(!empty($title)) {
 			$this->setTitle($title);
@@ -40,8 +46,8 @@ class Window
 	}
 
 	public function close() {
-		fwrite($this->stdout, chr(27).chr(91).'H'.chr(27).chr(91).'J'); // clear screen
-		fprintf($this->stdout, chr(27) . "[?25h"); //show cursor
+		$this->clearScreen();
+		$this->showCursor();
 	}
 
 	public function getHeight() {
@@ -88,16 +94,30 @@ class Window
 		$this->frame = $frame;
 	}
 
-	private function hideCursor($stream = STDOUT) {
-		fprintf($stream, chr(27) . "[?25l"); // hide cursor
+	private function showCursor() {
+		fprintf($this->stdout, chr(27) . "[?25h"); //show cursor
+	}
+
+	private function hideCursor() {
+		fprintf($this->stdout, chr(27) . "[?25l"); // hide cursor
 	}
 
 	private function clearScreen($stream = STDOUT) {
-		fwrite($stream, chr(27).chr(91).'H'.chr(27).chr(91).'J'); // clear screen
+		if($this->clearScreen) {
+			fwrite($stream, chr(27).chr(91).'H'.chr(27).chr(91).'J'); // clear screen
+		}
 	}
 
 	public function setFrameRate($frameRate) {
 		$this->frameRate = $frameRate;
+	}
+
+	public function getFPS() {
+		return $this->fps;
+	}
+
+	public function getDrawCount() {
+		return $this->drawCount;
 	}
 
 	public function onEvent(string $event, $callback) {
@@ -128,6 +148,12 @@ class Window
 		$frameTime = round(1000/$this->frameRate);
 		$milliseconds = round(microtime(true) * 1000);
 
+		if(($this->lastFPSCount + 1000) <= $milliseconds) {
+			$this->fps = $this->fpsCount;
+			$this->fpsCount = 0;
+			$this->lastFPSCount = $milliseconds;
+		}
+
 		if(($this->lastFrameTime + $frameTime) <= $milliseconds) {
 
 
@@ -146,12 +172,13 @@ class Window
 	}
 
 	public function draw() {
+		$this->fpsCount += 1;
 		$this->fireEvent("draw", $this);
 
 		$this->clearScreen();
 		fwrite($this->stdout, $this->frame);
 		$this->getTTYSize();
-		$this->drawCount++;
+		$this->drawCount += 1;
 	}
 
 

@@ -25,7 +25,7 @@ $container->add($header);
 $header->add($window->getTitle());
 
 // Create Block Content
-$content = new \tuefekci\overcli\Block("content", ['height'=>'80%', 'width'=>'100%']);
+$content = new \tuefekci\overcli\Block("content", ['height'=>'100%', 'width'=>'100%']);
 $container->add($content);
 
 // Create Block Footer
@@ -47,23 +47,93 @@ $logo->add("Strike a key when ready ...");
 $logo->add("");
 
 $logoKeyPressed = false;
-
-
+$codeLength = 0;
+$codeRepeat = 0;
 
 // ============================================================================
 // Before each frame gets rendered lets change its content
-$window->onEvent("update", function($event) use ($window, $container, $header, $content, $footer, $logo) {
+$window->onEvent("update", function($event) use ($runtime, $window, $container, $header, $content, $footer, $logo, &$logoKeyPressed, &$codeLength, &$codeRepeat) {
 
 	// =============================================================
 	// Set window size for the case that it changed (e.g. window resized)
-	$container->setHeight($window->getHeight()-10);
-	$container->setWidth($window->getWidth()-40);
+	$container->setHeight($window->getHeight());
+	$container->setWidth($window->getWidth());
 	// =============================================================
 
 	//$content->setContent($logo->get());
 	if(!$logo->isEmpty()) {
 		$content->add($logo->getFirstAndRemove());
 	} else {
+
+
+		if(($runtime->getTimeStart() + 5000) <= round(microtime(true) * 1000)) {
+			$logoKeyPressed = true;
+		}
+
+		if(!$logoKeyPressed) {
+
+			$tmpBuffer = $content->getContent();
+
+			//$tmpBuffer[count($tmpBuffer)-2] = "Strike a key when ready ...";
+
+			if (($window->getDrawCount() % 30) == 0) {
+				$tmpBuffer[count($tmpBuffer)-2] = "Strike a key when ready .";
+			}
+
+			if (($window->getDrawCount() % 60) == 0) {
+				$tmpBuffer[count($tmpBuffer)-2] = "Strike a key when ready ..";
+			}
+
+			if (($window->getDrawCount() % 90) == 0) {
+				$tmpBuffer[count($tmpBuffer)-2] = "Strike a key when ready ...";
+			}
+
+
+			$tmpBuffer[count($tmpBuffer)-1] = "";
+
+			$content->setContent($tmpBuffer);
+
+		} else {
+
+			if(!$codeLength) {
+				$codeLength = $content->getLineWidth();
+			}
+
+			if($codeLength < 3) {
+				sleep(5);
+				die();
+			} elseif($codeLength == 3) {
+
+				$tmpBuffer = $content->getContent();
+				$pin = $tmpBuffer[count($tmpBuffer)-1];
+	
+				$tmpBuffer[] = $pin;
+				$tmpBuffer[] = $pin;
+				$tmpBuffer[] = "";
+				$tmpBuffer[] = "PIN IDENTIFICATION NUMBER: ".$pin;
+				$tmpBuffer[] = "";
+
+				$content->setContent($tmpBuffer);
+
+				$codeLength = 2;
+
+			} else {
+				if (($window->getDrawCount() % 1) == 0) {
+
+					$content->add(\tuefekci\helpers\Strings::random_int($codeLength));
+					
+					if($codeRepeat < 2) {
+						$codeRepeat++;
+					} else {
+						$codeRepeat = 0;
+						$codeLength--;
+					}
+				}
+			}
+
+
+
+		}
 
 		//$content->add(\tuefekci\helpers\Strings::random_int(10));
 
@@ -72,7 +142,12 @@ $window->onEvent("update", function($event) use ($window, $container, $header, $
 	// =============================================================
 	// Clear the footer because we want to set new content. We could also set it directly via $footer->setContent(['this is the new content on the first line of footer...']);
 	$footer->clear();
-	$footer->add(date('Y-m-d H:i:s'));
+	$footer->add(
+		"Time: ".date('Y-m-d H:i:s')." | OS: ".\tuefekci\helpers\System::getOS().
+		" | CPU: ".number_format(\tuefekci\helpers\System::getCpuUsage(), 2).
+		" | RAM: (".\tuefekci\helpers\Strings::filesizeFormatted(\tuefekci\helpers\System::getMemoryUsage())."/".\tuefekci\helpers\Strings::filesizeFormatted(\tuefekci\helpers\System::getMemory()).")".
+		" | FPS: ".$window->getFPS()
+	);
 	// =============================================================
 
 

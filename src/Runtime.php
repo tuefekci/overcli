@@ -74,7 +74,7 @@ class Runtime
 
 	public static function start()
 	{
-		self::getInstance()->timeStart = microtime(true);
+		self::getInstance()->timeStart = round(microtime(true) * 1000);
 		self::getInstance()->state = true;
 	}
 
@@ -111,7 +111,7 @@ class Runtime
 	public static function getTimeSinceStart()
 	{
 		$_this = self::getInstance();
-		return $_this->timeSinceStart = microtime() - $_this->timeStart;
+		return $_this->timeSinceStart = round(microtime(true) * 1000) - $_this->timeStart;
 	}
 
 	public static function getTimeStart()

@@ -216,7 +216,7 @@ class Block
 		return $border;
 	}
 
-	private function getLineWidth() {
+	public function getLineWidth() {
 		$width = $this->width;
 
 		if($this->borderLeft) {
@@ -354,11 +354,13 @@ class Block
 			$result[$info['index']] = $info;
 		}
 
-		foreach($contentInfo['dynamic'] as $key => $info) {
-			if(\tuefekci\helpers\Strings::contains($info['styleHeight'], '%')) {
-				$contentInfo['dynamic'][$key]['height'] = floor($availableHeight * (intval($info['styleHeight']) / 100));
+		if(!empty($contentInfo['dynamic'])) {
+			foreach($contentInfo['dynamic'] as $key => $info) {
+				if(\tuefekci\helpers\Strings::contains($info['styleHeight'], '%')) {
+					$contentInfo['dynamic'][$key]['height'] = floor($availableHeight * (intval($info['styleHeight']) / 100));
+				}
+				$result[$info['index']] = $contentInfo['dynamic'][$key];
 			}
-			$result[$info['index']] = $contentInfo['dynamic'][$key];
 		}
 
 		return $result;
@@ -369,6 +371,7 @@ class Block
 	private function render() {
 
 		$block = array();
+		$calculatedContent = $this->calculateContent();
 
 		if($this->borderTop) {
 			$block[] = $this->generateTopBorder();
@@ -379,9 +382,16 @@ class Block
 			if(is_object($content) && $content instanceof Block) {
 
 				$content->setWidth($this->getLineWidth());
-				$content->setHeight($this->getLineWidth());
+				$content->setHeight($calculatedContent[$index]['height']);
 
 				$contentLines = $content->render();
+
+				// Hide Overflow
+				$contentLines = array_slice($contentLines, -$calculatedContent[$index]['height'], $calculatedContent[$index]['height']);
+
+				if(count($contentLines) < $calculatedContent[$index]['height']) {
+					$contentLines = array_pad($contentLines, $calculatedContent[$index]['height'], "");
+				}
 
 				foreach($contentLines as $line => $contentLine) {
 					$block[] = $this->renderLine($contentLine);
@@ -407,83 +417,10 @@ class Block
 
 
 
-		return print_r($this->calculateContent(), true).PHP_EOL.print_r($this->render(), true);
-
-		$remainingHeight = $this->height;
-		$remainingWidth = $this->getLineWidth();
-
-		if($this->hasParent()) {
-			//$this->calculateWidth();
-			//$this->calculateHeight();
-		}
-
-		$borderTop = "";
-		if($this->borderTop) {
-			$borderTop = $this->generateTopBorder();
-			$remainingHeight -= 1;
-		}
-
-		$borderBottom = "";
-		if($this->borderBottom) {
-			$borderBottom = $this->generateBottomBorder();
-			$remainingHeight -= 1;
-		}
-		
-		$contentHeights = array();
-		foreach($this->content as $key => $content) {
-			if(is_object($content) && $content instanceof Block) {
-				$contentHeights[$key] = substr_count($content->draw(), PHP_EOL)+1;
-			} elseif(is_string($content)) {
-				$contentHeights[$key] = 1;
-			}
-		}
-
-		$renderedLines = array();
-		foreach($this->content as $key => $content) {
-
-			//$renderedLines[] = $this->generateLine($key." - ".$contentHeights[$key]);
-
-			if(is_object($content) && $content instanceof Block) {
+		//return print_r($this->calculateContent(), true).PHP_EOL.print_r($this->render(), true);
 
 
-				$width = 0;
-				$height = 0;
-
-				$content->setWidth($this->getLineWidth());
-				//$content->setHeight($contentHeights[$key]);
-
-				$contentLines = $content->draw();
-				$contentLines = explode(PHP_EOL, $contentLines);
-
-				// Remove last line
-				unset($contentLines[array_key_last($contentLines)]);
-
-				// Hide Overflow
-				$contentLines = array_slice($contentLines, 0, $height);
-
-				foreach($contentLines as $contentLine) {
-					$renderedLines[] = $this->generateLine($contentLine);
-				}
-
-			} elseif(is_string($content)) {
-				$renderedLines[] = $this->generateLine($content);
-			}
-
-
-		}
-
-
-		$canvas = "";
-
-		$canvasContent = array_slice($renderedLines, 0, $remainingHeight);
-
-		if(count($canvasContent) < $remainingHeight) {
-			//$canvasContent = array_pad($canvasContent, $remainingHeight, PHP_EOL);
-		}
-
-		$canvas .= implode($canvasContent, null);
-
-		return $borderTop.$canvas.$borderBottom;
+		return implode(PHP_EOL, $this->render());
 
 	}
 
