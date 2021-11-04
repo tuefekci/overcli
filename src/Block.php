@@ -155,14 +155,45 @@ class Block
 			$border .= str_repeat("─", $width);
 		}
 
-		if ($this->borderBottom) {
+		if ($this->borderRight) {
 			$border .= '┐';
 		}
 
 		return $border.PHP_EOL;
 	}
 
+	private function generateBottomBorder() {
+		$border = '';
+
+		if ($this->borderLeft) {
+			$border .= '└';
+		}
+
+		if ($this->borderBottom) {
+
+			$width = $this->width;
+
+			if($this->borderLeft) {
+				$width -= 1;
+			}
+
+			if($this->borderRight) {
+				$width -= 1;
+			}
+
+			$border .= str_repeat("─", $width);
+		}
+
+		if ($this->borderRight) {
+			$border .= '┘';
+		}
+
+		return $border.PHP_EOL;
+	}
+
+
 	private function generateLine($content) {
+
 		$line = '';
 
 		if ($this->borderLeft) {
@@ -173,16 +204,26 @@ class Block
 			$line .= str_repeat(' ', $this->paddingLeft);
 		}
 
+		//$line .= \tuefekci\helpers\Strings::truncate($content, $this->width, "");
 		$line .= $content;
+
 
 		if($this->paddingRight) {
 			$line .= str_repeat(' ', $this->paddingRight);
 		}
 
 		if ($this->borderRight) {
-			$line .= str_repeat(" ", ($this->width)-strlen($line)+1);
+
+			$spacing = ($this->width+1)-strlen($line);
+			if($spacing < 1) {
+				$spacing = 0;
+			}
+
+			$line .= str_repeat(" ", $spacing );
 			$line .= '│';
 		}
+
+		$line .= "".PHP_EOL;
 
 		return $line;
 	}
@@ -201,22 +242,51 @@ class Block
 			$canvas .= $this->generateTopBorder();
 		}
 
-		$canvas .= $this->generateLine("Hello!");
+		//$height = $this->height-10;
 
-		$height = $this->height-10;
+		foreach($this->content as $key => $content) {
 
-		for ($y=0; $y < $height; $y++) { 
-			# code...
+			if(is_object($content) && $content instanceof Block) {
 
-			$line = "";
+				$width = $this->width;
 
-			for ($x=0; $x < $this->width; $x++) { 
-				//$line .= "#";
+				if($this->borderLeft) {
+					$width -= 1;
+				}
+	
+				if($this->borderRight) {
+					$width -= 1;
+				}
+	
+				if($this->paddingLeft) {
+					$width -= $this->paddingLeft;
+				}
+	
+				if($this->paddingRight) {
+					$width -= $this->paddingRight;
+				}
+	
+				$content->setWidth($width);
+
+				$contentLines = $content->draw();
+				$contentLines = explode(PHP_EOL, $contentLines);
+				unset($contentLines[array_key_last($contentLines)]);
+
+				foreach($contentLines as $contentLine) {
+					$canvas .= $this->generateLine($contentLine);
+				}
+
+			} elseif(is_string($content)) {
+				$canvas .= $this->generateLine($content);
 			}
 
-			$canvas .= $line . PHP_EOL;
 
 		}
+
+		if($this->borderBottom) {
+			$canvas .= $this->generateBottomBorder();
+		}
+
 
 
 		return $canvas;
@@ -225,7 +295,12 @@ class Block
 
 	private function hasParent()
 	{
-		return false;
+		return !empty($this->parent);
+	}
+
+	public function hasContent()
+	{
+		return !empty($this->content);
 	}
 
 	public function setParent(Block $parent)
@@ -260,7 +335,7 @@ class Block
 
 	public function add($content) {
 
-		if(is_object($content) && \get_class($content) == 'Block') {
+		if(is_object($content) && $content instanceof Block) {
 			$content->setParent($this);
 			$this->content[] = $content;
 		} else {

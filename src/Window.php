@@ -95,7 +95,7 @@ class Window
 	}
 
 	private function clearScreen($stream = STDOUT) {
-		//fwrite($stream, chr(27).chr(91).'H'.chr(27).chr(91).'J'); // clear screen
+		fwrite($stream, chr(27).chr(91).'H'.chr(27).chr(91).'J'); // clear screen
 	}
 
 	public function setFrameRate($frameRate) {
@@ -127,13 +127,15 @@ class Window
 
 		$this->fireEvent("tick", $this);
 
-		$frameTime = round(1000000/$this->frameRate);
+		$frameTime = round(1000/$this->frameRate);
+		$milliseconds = round(microtime(true) * 1000);
 
-		if($this->lastFrameTime + $frameTime <= microtime(true)) {
+		if(($this->lastFrameTime + $frameTime) <= $milliseconds) {
+
 
 			$this->fireEvent("update", $this);
 
-			$this->lastFrameTime = microtime(true);
+			$this->lastFrameTime = $milliseconds;
 			$this->draw();
 		}
 

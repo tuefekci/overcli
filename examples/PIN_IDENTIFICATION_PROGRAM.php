@@ -26,9 +26,10 @@ $header->add($window->getTitle());
 
 // Create Block Content
 $content = new \tuefekci\overcli\Block("content", ['height'=>'100%', 'width'=>'100%']);
+$container->add($content);
 
 // Create Block Footer
-$footer = new \tuefekci\overcli\Block("footer", ['width'=>'100%', 'bottom'=>0]);
+$footer = new \tuefekci\overcli\Block("footer", ['width'=>'100%', 'bottom'=>0, 'border-top'=>1]);
 $container->add($footer);
 
 
@@ -53,15 +54,20 @@ $logoKeyPressed = false;
 
 // ============================================================================
 // Before each frame gets rendered lets change its content
-$window->onEvent("update", function($event) use ($window, $container, $header, $content, $footer) {
+$window->onEvent("update", function($event) use ($window, $container, $header, $content, $footer, $logo) {
 
 	// =============================================================
 	// Set window size for the case that it changed (e.g. window resized)
 	$container->setHeight($window->getHeight());
-	$container->setWidth($window->getWidth());
+	$container->setWidth($window->getWidth()-20);
 	// =============================================================
 
+	//$content->setContent($logo->get());
+	if(!$logo->isEmpty()) {
+		$content->add($logo->getFirstAndRemove());
+	} else {
 
+	}
 
 	// =============================================================
 	// Clear the footer because we want to set new content. We could also set it directly via $footer->setContent(['this is the new content on the first line of footer...']);
