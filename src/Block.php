@@ -89,6 +89,12 @@ class Block
 			case 'border-right':
 				$this->borderRight = $value;
 				break;
+			case 'padding':
+				$this->paddingTop = $value;
+				$this->paddingBottom = $value;
+				$this->paddingLeft = $value;
+				$this->paddingRight = $value;
+				break;
 			case 'padding-top':
 				$this->paddingTop = $value;
 				break;
@@ -349,9 +355,11 @@ class Block
 		$availableHeight = $this->getMaxContentHeight();
 
 		$result = array();
-		foreach($contentInfo['fixed'] as $info) {
-			$availableHeight -= $info['height'];
-			$result[$info['index']] = $info;
+		if(!empty($contentInfo['fixed'])) {
+			foreach($contentInfo['fixed'] as $info) {
+				$availableHeight -= $info['height'];
+				$result[$info['index']] = $info;
+			}
 		}
 
 		if(!empty($contentInfo['dynamic'])) {
@@ -459,8 +467,18 @@ class Block
 		if(is_object($content) && $content instanceof Block) {
 			$content->setParent($this);
 			$this->content[] = $content;
-		} else {
-			$this->content[] = $content;
+		} elseif(is_string($content)) {
+			if(\tuefekci\helpers\Strings::contains($content, PHP_EOL)) {
+				$content = explode(PHP_EOL, $content);
+
+				foreach($content as $line) {
+					$this->content[] = $line;
+				}
+
+			} else {
+				$this->content[] = $content;
+			}
+
 		}
 	}
 

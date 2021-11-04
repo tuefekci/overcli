@@ -26,9 +26,12 @@ class Window
 
 	private bool $clearScreen = true;
 
-	public function __construct($title=null)
+	private $runtime;
+
+	public function __construct($runtime, $title=null)
 	{
 		$_this = $this;
+		$this->runtime = $runtime;
 		$this->time = microtime(true);
 
 		$this->getTTYSize();
@@ -146,7 +149,7 @@ class Window
 		$this->fireEvent("tick", $this);
 
 		$frameTime = round(1000/$this->frameRate);
-		$milliseconds = round(microtime(true) * 1000);
+		$milliseconds = $this->runtime->getMilliseconds();
 
 		if(($this->lastFPSCount + 1000) <= $milliseconds) {
 			$this->fps = $this->fpsCount;
@@ -155,8 +158,6 @@ class Window
 		}
 
 		if(($this->lastFrameTime + $frameTime) <= $milliseconds) {
-
-
 			$this->fireEvent("update", $this);
 
 			$this->lastFrameTime = $milliseconds;

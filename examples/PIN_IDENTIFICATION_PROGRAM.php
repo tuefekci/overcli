@@ -66,7 +66,7 @@ $window->onEvent("update", function($event) use ($runtime, $window, $container, 
 	} else {
 
 
-		if(($runtime->getTimeStart() + 5000) <= round(microtime(true) * 1000)) {
+		if(($runtime->getTimeStart() + 5000) <= $runtime->getMilliseconds()) {
 			$logoKeyPressed = true;
 		}
 
@@ -100,7 +100,7 @@ $window->onEvent("update", function($event) use ($runtime, $window, $container, 
 			}
 
 			if($codeLength < 3) {
-				sleep(5);
+				sleep(15);
 				die();
 			} elseif($codeLength == 3) {
 
@@ -152,7 +152,7 @@ $window->onEvent("update", function($event) use ($runtime, $window, $container, 
 
 
 	// =============================================================
-	// Set the content of the active frame (this should be changed when the real code for frames is implemented)
+	// Set the content of the active frame (TODO: this should be changed when the real code for frames is implemented)
 	$window->setFrame($container->draw());
 	// =============================================================
 });

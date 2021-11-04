@@ -74,7 +74,7 @@ class Runtime
 
 	public static function start()
 	{
-		self::getInstance()->timeStart = round(microtime(true) * 1000);
+		self::getInstance()->timeStart = self::getInstance()->getMilliseconds();
 		self::getInstance()->state = true;
 	}
 
@@ -111,7 +111,7 @@ class Runtime
 	public static function getTimeSinceStart()
 	{
 		$_this = self::getInstance();
-		return $_this->timeSinceStart = round(microtime(true) * 1000) - $_this->timeStart;
+		return $_this->timeSinceStart = $_this->getMilliseconds() - $_this->timeStart;
 	}
 
 	public static function getTimeStart()
@@ -122,8 +122,7 @@ class Runtime
 
 	public static function addWindow($title = null)
 	{
-		$_this = self::getInstance();
-		return $_this->windows[] = new Window($title);
+		return self::getInstance()->windows[] = new Window(self::getInstance(), $title);
 	}
 
 	public static function getWindow(int $index)
@@ -148,6 +147,11 @@ class Runtime
 	{
 		$_this = self::getInstance();
 		return count($_this->windows);
+	}
+
+	public static function getMilliseconds()
+	{
+		return round(microtime(true) * 1000);
 	}
 
 }

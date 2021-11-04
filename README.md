@@ -33,7 +33,7 @@ All media is in /demo the video is /demo/PIN_IDENTIFICATION_PROGRAM.mp4 and show
 
 ### examples/exception.php 
 implements a static renderer for exceptions which can be used in other projects and logfiles.
-
+<img src="https://github.com/tuefekci/overcli/raw/main/demo/exception.png" />
 ---
 
 ## Goals/TODO!
