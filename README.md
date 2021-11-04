@@ -24,13 +24,15 @@ Also it was important for me that is easy to render the results, to strings or a
 #### Composer
 
 ## Examples
-See the examples folder.
+See the /examples folder.
 
-#### examples/PIN_IDENTIFICATION_PROGRAM.php implements a Demo Application of the T2 Movie Prop PIN_IDENTIFICATION_PROGRAM in raw PHP.
-
+### examples/PIN_IDENTIFICATION_PROGRAM.php 
+implements a Demo Application of the T2 Movie Prop PIN IDENTIFICATION PROGRAM.
 <img src="https://github.com/tuefekci/overcli/raw/main/demo/PIN_IDENTIFICATION_PROGRAM.gif" />
+All media is in /demo the video is /demo/PIN_IDENTIFICATION_PROGRAM.mp4 and shows the whole example.
 
-#### examples/exception.php implements a static renderer for exceptions which can be used in other projects and logfiles.
+### examples/exception.php 
+implements a static renderer for exceptions which can be used in other projects and logfiles.
 
 ---
 
