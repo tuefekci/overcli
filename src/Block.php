@@ -7,11 +7,11 @@ class Block
 
 	private string $id;
 
+	private $styleWidth = 0;
+	private $styleHeight = 0;
+
 	private $width = 0;
 	private $height = 0;
-
-	private $calculatedWidth = 0;
-	private $calculatedHeight = 0;
 
 	private string $borderColor = '#000';
 	private string $backgroundColor = '#fff';
@@ -37,9 +37,6 @@ class Block
 	private int $borderWidth = 1;
 
 	private Block $parent;
-
-
-
 	private array $content;
 
 	public function __construct(string $id, array $options = [], array $content = [])
@@ -60,10 +57,10 @@ class Block
 	{
 		switch($key) {
 			case 'width':
-				$this->width = $value;
+				$this->styleWidth = $value;
 				break;
 			case 'height':
-				$this->height = $value;
+				$this->styleHeight = $value;
 				break;
 			case 'border-color':
 				$this->borderColor = $value;
@@ -128,9 +125,29 @@ class Block
 		$this->width = $width;
 	}
 
+	public function getWidth()
+	{
+		return $this->width;
+	}
+
+	public function getStyleWidth()
+	{
+		return $this->styleWidth;
+	}
+
 	public function setHeight(int $height)
 	{
 		$this->height = $height;
+	}
+
+	public function getHeight()
+	{
+		return $this->height;
+	}
+
+	public function getStyleHeight()
+	{
+		return $this->styleHeight;
 	}
 
 	private function generateTopBorder() {
@@ -143,6 +160,10 @@ class Block
 		if ($this->borderTop) {
 
 			$width = $this->width;
+
+			if(empty($width)) {
+				$width = 1;
+			}
 
 			if($this->borderLeft) {
 				$width -= 1;
@@ -159,7 +180,7 @@ class Block
 			$border .= '┐';
 		}
 
-		return $border.PHP_EOL;
+		return $border;
 	}
 
 	private function generateBottomBorder() {
@@ -172,6 +193,10 @@ class Block
 		if ($this->borderBottom) {
 
 			$width = $this->width;
+
+			if(empty($width)) {
+				$width = 1;
+			}
 
 			if($this->borderLeft) {
 				$width -= 1;
@@ -188,11 +213,32 @@ class Block
 			$border .= '┘';
 		}
 
-		return $border.PHP_EOL;
+		return $border;
 	}
 
+	private function getLineWidth() {
+		$width = $this->width;
 
-	private function generateLine($content) {
+		if($this->borderLeft) {
+			$width -= 1;
+		}
+
+		if($this->borderRight) {
+			$width -= 1;
+		}
+
+		if($this->paddingLeft) {
+			$width -= $this->paddingLeft;
+		}
+
+		if($this->paddingRight) {
+			$width -= $this->paddingRight;
+		}
+
+		return $width;
+	}
+
+	private function renderLine($content) {
 
 		$line = '';
 
@@ -214,82 +260,230 @@ class Block
 
 		if ($this->borderRight) {
 
+			
 			$spacing = ($this->width+1)-strlen($line);
 			if($spacing < 1) {
 				$spacing = 0;
 			}
-
+			
 			$line .= str_repeat(" ", $spacing );
+			
 			$line .= '│';
 		}
 
-		$line .= "".PHP_EOL;
+		$line .= "";
 
 		return $line;
 	}
 
-	public function draw()
+	public function getContentHeight()
 	{
+		return count($this->render());
+	}
 
-		if($this->hasParent()) {
-			//$this->calculateWidth();
-			//$this->calculateHeight();
-		}
-
-		$canvas = "";
+	public function getMaxContentHeight()
+	{
+		$max = $this->height;
 
 		if($this->borderTop) {
-			$canvas .= $this->generateTopBorder();
+			$max -= 1;
 		}
 
-		//$height = $this->height-10;
+		if($this->borderBottom) {
+			$max -= 1;
+		}
 
-		foreach($this->content as $key => $content) {
+		if($this->paddingTop) {
+			$max -= $this->paddingTop;
+		}
+
+		if($this->paddingBottom) {
+			$max -= $this->paddingBottom;
+		}
+
+		return $max;
+	}
+
+	private function calculateContent() {
+
+		$contentInfo = array();
+
+		foreach($this->content as $index => $content) {
+
+			$type = "fixed";
 
 			if(is_object($content) && $content instanceof Block) {
 
-				$width = $this->width;
+				$content->setWidth($this->getLineWidth());
 
-				if($this->borderLeft) {
-					$width -= 1;
-				}
-	
-				if($this->borderRight) {
-					$width -= 1;
-				}
-	
-				if($this->paddingLeft) {
-					$width -= $this->paddingLeft;
-				}
-	
-				if($this->paddingRight) {
-					$width -= $this->paddingRight;
-				}
-	
-				$content->setWidth($width);
+				$styleHeight = $content->getStyleHeight();
+				$contentHeight = $content->getContentHeight();
+				$height = 0;
 
-				$contentLines = $content->draw();
-				$contentLines = explode(PHP_EOL, $contentLines);
-				unset($contentLines[array_key_last($contentLines)]);
+				if(empty($styleHeight) OR $styleHeight == "auto") {
+					$height = $contentHeight;
+				} elseif(is_numeric($styleHeight)) {
+					$height = $styleHeight;
+				} elseif(\tuefekci\helpers\Strings::contains($styleHeight, '%')) {
+					$type = "dynamic";
+					$height = 0;
+				} else {
+					$height = 1;
+				}
 
-				foreach($contentLines as $contentLine) {
-					$canvas .= $this->generateLine($contentLine);
+			} else {
+				$styleHeight = 1;
+				$contentHeight = 1;
+				$height = 1;
+			}
+
+			$contentInfo[$type][] = array(
+				'index' => $index,
+				'styleHeight' => $styleHeight,
+				'contentHeight' =>  $contentHeight,
+				'height' => $height,
+			);
+
+		}
+
+		$availableHeight = $this->getMaxContentHeight();
+
+		$result = array();
+		foreach($contentInfo['fixed'] as $info) {
+			$availableHeight -= $info['height'];
+			$result[$info['index']] = $info;
+		}
+
+		foreach($contentInfo['dynamic'] as $key => $info) {
+			if(\tuefekci\helpers\Strings::contains($info['styleHeight'], '%')) {
+				$contentInfo['dynamic'][$key]['height'] = floor($availableHeight * (intval($info['styleHeight']) / 100));
+			}
+			$result[$info['index']] = $contentInfo['dynamic'][$key];
+		}
+
+		return $result;
+
+
+	}
+
+	private function render() {
+
+		$block = array();
+
+		if($this->borderTop) {
+			$block[] = $this->generateTopBorder();
+		}
+
+		foreach($this->content as $index => $content) {
+
+			if(is_object($content) && $content instanceof Block) {
+
+				$content->setWidth($this->getLineWidth());
+				$content->setHeight($this->getLineWidth());
+
+				$contentLines = $content->render();
+
+				foreach($contentLines as $line => $contentLine) {
+					$block[] = $this->renderLine($contentLine);
 				}
 
 			} elseif(is_string($content)) {
-				$canvas .= $this->generateLine($content);
+				$block[] = $this->renderLine($content);
 			}
 
 
 		}
 
 		if($this->borderBottom) {
-			$canvas .= $this->generateBottomBorder();
+			$block[] = $this->generateBottomBorder();
+		}
+
+		return $block;
+
+	}
+
+	public function draw()
+	{
+
+
+
+		return print_r($this->calculateContent(), true).PHP_EOL.print_r($this->render(), true);
+
+		$remainingHeight = $this->height;
+		$remainingWidth = $this->getLineWidth();
+
+		if($this->hasParent()) {
+			//$this->calculateWidth();
+			//$this->calculateHeight();
+		}
+
+		$borderTop = "";
+		if($this->borderTop) {
+			$borderTop = $this->generateTopBorder();
+			$remainingHeight -= 1;
+		}
+
+		$borderBottom = "";
+		if($this->borderBottom) {
+			$borderBottom = $this->generateBottomBorder();
+			$remainingHeight -= 1;
+		}
+		
+		$contentHeights = array();
+		foreach($this->content as $key => $content) {
+			if(is_object($content) && $content instanceof Block) {
+				$contentHeights[$key] = substr_count($content->draw(), PHP_EOL)+1;
+			} elseif(is_string($content)) {
+				$contentHeights[$key] = 1;
+			}
+		}
+
+		$renderedLines = array();
+		foreach($this->content as $key => $content) {
+
+			//$renderedLines[] = $this->generateLine($key." - ".$contentHeights[$key]);
+
+			if(is_object($content) && $content instanceof Block) {
+
+
+				$width = 0;
+				$height = 0;
+
+				$content->setWidth($this->getLineWidth());
+				//$content->setHeight($contentHeights[$key]);
+
+				$contentLines = $content->draw();
+				$contentLines = explode(PHP_EOL, $contentLines);
+
+				// Remove last line
+				unset($contentLines[array_key_last($contentLines)]);
+
+				// Hide Overflow
+				$contentLines = array_slice($contentLines, 0, $height);
+
+				foreach($contentLines as $contentLine) {
+					$renderedLines[] = $this->generateLine($contentLine);
+				}
+
+			} elseif(is_string($content)) {
+				$renderedLines[] = $this->generateLine($content);
+			}
+
+
 		}
 
 
+		$canvas = "";
 
-		return $canvas;
+		$canvasContent = array_slice($renderedLines, 0, $remainingHeight);
+
+		if(count($canvasContent) < $remainingHeight) {
+			//$canvasContent = array_pad($canvasContent, $remainingHeight, PHP_EOL);
+		}
+
+		$canvas .= implode($canvasContent, null);
+
+		return $borderTop.$canvas.$borderBottom;
 
 	}
 
@@ -311,16 +505,6 @@ class Block
 	public function getId()
 	{
 		return $this->id;
-	}
-
-	public function getWidth()
-	{
-		return $this->width;
-	}
-
-	public function getHeight()
-	{
-		return $this->height;
 	}
 
 	public function setContent(array $content)

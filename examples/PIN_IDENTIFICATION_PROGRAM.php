@@ -20,37 +20,35 @@ $window = $runtime->addWindow('PIN IDENTIFICATION PROGRAM');
 $container = new \tuefekci\overcli\Block("container", ['height'=>$window->getHeight(), 'width' => $window->getWidth(), 'border'=>true, 'padding-left'=>1, 'padding-right'=>1]);
 
 // Create Block Header
-$header = new \tuefekci\overcli\Block("header", ['width'=>'100%', 'top'=>0, 'border-bottom'=>1]);
+$header = new \tuefekci\overcli\Block("header", ['width'=>'100%', 'border-bottom'=>1]);
 $container->add($header);
 $header->add($window->getTitle());
 
 // Create Block Content
-$content = new \tuefekci\overcli\Block("content", ['height'=>'100%', 'width'=>'100%']);
+$content = new \tuefekci\overcli\Block("content", ['height'=>'80%', 'width'=>'100%']);
 $container->add($content);
 
 // Create Block Footer
-$footer = new \tuefekci\overcli\Block("footer", ['width'=>'100%', 'bottom'=>0, 'border-top'=>1]);
+$footer = new \tuefekci\overcli\Block("footer", ['width'=>'100%', 'border-top'=>1]);
 $container->add($footer);
 
-
-
-
-$logoBuffer = array();
-$logoBuffer[] = "";
-$logoBuffer[] = "PPPPP   IIIIIII   N    N";
-$logoBuffer[] = "P   PP     I      NN   N IDENTIFICATION";
-$logoBuffer[] = "P   PP     I      N N  N";
-$logoBuffer[] = "PPPPP      I      N  N N   PROGRAM";
-$logoBuffer[] = "P          I      N   NN";
-$logoBuffer[] = "P       IIIIIII   N    N";
-$logoBuffer[] = "";
-$logoBuffer[] = "Strike a key when ready ...";
-$logoBuffer[] = "";
+ 
 
 $logo = new \tuefekci\overcli\LineBuffer();
-$logo->set($logoBuffer);
+$logo->add("");
+$logo->add("PPPPP   IIIIIII   N    N");
+$logo->add("P   PP     I      NN   N IDENTIFICATION");
+$logo->add("P   PP     I      N N  N");
+$logo->add("PPPPP      I      N  N N   PROGRAM");
+$logo->add("P          I      N   NN");
+$logo->add("P       IIIIIII   N    N");
+$logo->add("");
+$logo->add("Strike a key when ready ...");
+$logo->add("");
 
 $logoKeyPressed = false;
+
+
 
 // ============================================================================
 // Before each frame gets rendered lets change its content
@@ -58,14 +56,16 @@ $window->onEvent("update", function($event) use ($window, $container, $header, $
 
 	// =============================================================
 	// Set window size for the case that it changed (e.g. window resized)
-	$container->setHeight($window->getHeight());
-	$container->setWidth($window->getWidth()-20);
+	$container->setHeight($window->getHeight()-10);
+	$container->setWidth($window->getWidth()-40);
 	// =============================================================
 
 	//$content->setContent($logo->get());
 	if(!$logo->isEmpty()) {
 		$content->add($logo->getFirstAndRemove());
 	} else {
+
+		//$content->add(\tuefekci\helpers\Strings::random_int(10));
 
 	}
 
@@ -88,10 +88,8 @@ $window->onEvent("update", function($event) use ($window, $container, $header, $
 // This example is raw php, but an async library like amp or react should be used if possible. 
 
 // This var is only needed if you want to stop your process in code.
-
-while($runtime->getState()) {
-	$runtime->tick();
-}
+$runtime->run();
+//$runtime->tick();
 // ============================================================================
 
 die();
@@ -109,21 +107,6 @@ $outputBuffer = array();
 
 $i = $window->getWidth()-4;
 
-
-$logoBuffer = array();
-$logoBuffer[] = "";
-$logoBuffer[] = "PPPPP   IIIIIII   N    N";
-$logoBuffer[] = "P   PP     I      NN   N IDENTIFICATION";
-$logoBuffer[] = "P   PP     I      N N  N";
-$logoBuffer[] = "PPPPP      I      N  N N   PROGRAM";
-$logoBuffer[] = "P          I      N   NN";
-$logoBuffer[] = "P       IIIIIII   N    N";
-$logoBuffer[] = "";
-$logoBuffer[] = "Strike a key when ready ...";
-$logoBuffer[] = "";
-
-$logo = new \tuefekci\overcli\LineBuffer();
-$logo->set($logoBuffer);
 
 //echo $buffer;
 while(true) {

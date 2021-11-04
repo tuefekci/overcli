@@ -26,6 +26,24 @@ class Runtime
 			cli_set_process_title("OverCLI Runtime Version:");
 		}
 
+		// =========================================================
+		// Shutdown Handler Windows
+		// TODO: Make this better and more portable
+		$_this = self::$instance;
+		if(function_exists("pcntl_async_signals") && function_exists("pcntl_async_signals")) {
+			pcntl_async_signals(true);
+			pcntl_signal(SIGINT, function() use ($_this) {
+				$_this->stop();
+				die();
+				exit();
+			});
+		}
+
+		register_shutdown_function(function() use ($_this) {
+			$_this->stop();
+		});
+		// =========================================================
+
 		$this->start();
 
 		return $this;
@@ -43,6 +61,17 @@ class Runtime
 		return self::getInstance()->state;
 	}
 
+	public static function run() {
+		$instance = self::getInstance();
+
+		while(self::getState()) {
+			$instance->tick();
+			usleep(100);
+		}
+
+		return self::getInstance();
+	}
+
 	public static function start()
 	{
 		self::getInstance()->timeStart = microtime(true);
@@ -56,7 +85,14 @@ class Runtime
 	public static function stop()
 	{
 		$instance = self::getInstance();
-		self::getInstance()->state = false;
+
+		if(!empty($instance->windows)) {
+			foreach($instance->windows as $window) {
+				$window->close();
+			}
+		}
+
+		$instance->state = false;
 	}
 
 	public static function tick()

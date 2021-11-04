@@ -29,6 +29,13 @@ class LineBuffer
 		return $return;
 	}
 
+	public function getLastAndRemove()
+	{
+		$return = $this->buffer[array_key_last($this->buffer)];
+        unset($this->buffer[array_key_last($this->buffer)]);
+		return $return;
+	}
+
 	public function clear()
 	{
 		$this->buffer = [];

@@ -28,11 +28,7 @@ class Window
 		$this->getTTYSize();
 		$stream = $this->stdout = fopen('php://stdout', 'w');
 
-		$this->hideCursor($this->stdout);
-
-		register_shutdown_function(function() use ($stream) {
-			//fwrite($stream, chr(27).chr(91).'H'.chr(27).chr(91).'J'); // clear screen
-		});
+		$this->hideCursor($stream);
 
 		if(!empty($title)) {
 			$this->setTitle($title);
@@ -41,6 +37,11 @@ class Window
 		$this->frameRate = 60;
 
 		return $this;
+	}
+
+	public function close() {
+		fwrite($this->stdout, chr(27).chr(91).'H'.chr(27).chr(91).'J'); // clear screen
+		fprintf($this->stdout, chr(27) . "[?25h"); //show cursor
 	}
 
 	public function getHeight() {
@@ -88,10 +89,7 @@ class Window
 	}
 
 	private function hideCursor($stream = STDOUT) {
-		fprintf($stream, "\033[?25l"); // hide cursor
-		register_shutdown_function(function() use($stream) {
-			fprintf($stream, "\033[?25h"); //show cursor
-		});
+		fprintf($stream, chr(27) . "[?25l"); // hide cursor
 	}
 
 	private function clearScreen($stream = STDOUT) {
@@ -148,7 +146,6 @@ class Window
 	}
 
 	public function draw() {
-
 		$this->fireEvent("draw", $this);
 
 		$this->clearScreen();
